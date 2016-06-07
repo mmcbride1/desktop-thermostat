@@ -1,0 +1,53 @@
+#!/bin/bash
+# /etc/init.d/thermostat
+
+### BEGIN INIT INFO
+# Provides:          thermostat
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: thermostat initscript
+# Description:       This service is used to manage a desktop thermostat
+### END INIT INFO
+
+# process id #
+PID_FILE=/var/run/thermostat/thermostat.pid
+
+case "$1" in 
+    start)
+        if [ -f $PID_FILE ]
+          then
+          echo "Thermostat already running..."
+        else
+           echo "starting thermostat"
+           /home/thermostat/Applications/thermostat/engage_thermostat.py > /dev/null 2>&1 &
+           echo $! > $PID_FILE
+        fi
+        ;;
+    stop)
+        if [ -f $PID_FILE ]
+          then
+           echo "stopping thermostat"
+           rm $PID_FILE
+           /home/thermostat/Applications/thermostat/cleanup.py > /dev/null 2>&1 &
+           killall engage_thermostat.py
+        else
+           echo "Thermostat already stopped..."
+        fi
+        ;;
+    status)
+        if [ -f $PID_FILE ]
+          then
+           echo "Running"
+        else
+           echo "Not Running"
+        fi
+        ;; 
+    *)
+        echo "Usage: /etc/init.d/thermostat start|stop|status"
+        exit 1
+        ;;
+esac
+
+exit 0
